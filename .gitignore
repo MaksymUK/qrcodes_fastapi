@@ -25,3 +25,4 @@ recipients_with_qr.xlsx
 *.db
 *.sqlite3
 *.iml
+.DS_Store
