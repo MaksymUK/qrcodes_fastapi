@@ -24,4 +24,4 @@ recipients_with_qr.xlsx
 # Database files (if using SQLite)
 *.db
 *.sqlite3
-
+*.iml
