@@ -3,14 +3,16 @@ import uuid
 
 import pandas as pd
 import qrcode
+from os import getenv
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from datetime import datetime
 
 from db.engine import SessionLocal
-from db.models import DBRecipients
+from db.models import DBRecipients, DBScanEvents
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = getenv("BASE_URL", "http://localhost:8000")
 QR_FOLDER = "qr_codes"
 
 os.makedirs(QR_FOLDER, exist_ok=True)
@@ -124,11 +126,11 @@ async def upload_recipients(file: UploadFile = File(...)):
         output_excel = "recipients_with_qr.xlsx"
         df.to_excel(output_excel, index=False)
 
-        return {
-            "message": "QR codes generated successfully",
-            "records_processed": len(qr_image_urls),
-            "excel_file": output_excel,
-        }
+        return FileResponse(
+            path=output_excel,
+            filename=output_excel,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     finally:
         if os.path.exists(temp_file):
@@ -154,7 +156,7 @@ async def scan_qr(token: str, request: Request):
         raise HTTPException(status_code=404, detail="Invalid QR code")
 
     recipient.total_scans += 1
-    recipient.last_scanned_at = datetime
+    recipient.last_scanned_at = datetime.now()
 
     if recipient.first_scanned_at is None:
         recipient.first_scanned_at = recipient.last_scanned_at
