@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Virtual environment
+.venv/
+venv/
+
+# PyCharm
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# QR code images generated at runtime
+qr_codes/
+
+# Uploaded Excel files
+temp_*.xlsx
+
+# Generated Excel outputs
+recipients_with_qr.xlsx
+
+# Database files (if using SQLite)
+*.db
+*.sqlite3
+

@@ -1,13 +1,13 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, BigInteger, DateTime, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, String, DateTime, ForeignKey, Identity
 from sqlalchemy.orm import relationship
 
 from db.engine import Base
 
 class DBRecipients(Base):
     __tablename__ = "recipients"
-    id = Column(BigInteger, primary_key=True, index=True)
+    id = Column(BigInteger, Identity(always=False), primary_key=True)
     name = Column(String, nullable=False)
     surname = Column(String)
     company_name = Column(String)
@@ -18,12 +18,16 @@ class DBRecipients(Base):
     first_scanned_at = Column(DateTime)
     last_scanned_at = Column(DateTime)
     total_scans = Column(Integer, default=0)
-    scans = relationship("DBScanEvents", back_populates="recipient")
+    scans = relationship(
+        "DBScanEvents",
+        back_populates="recipient",
+        cascade="all, delete-orphan"
+    )
 
 
 class DBScanEvents(Base):
     __tablename__ = "scan_events"
-    id = Column(BigInteger, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     recipient_id = Column(ForeignKey("recipients.id"), nullable=False)
     scanned_at = Column(DateTime, default=datetime.now)
     ip_address = Column(String)
