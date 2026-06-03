@@ -23,6 +23,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
   nginx:
     image: nginx:latest
     container_name: qrcodes_nginx

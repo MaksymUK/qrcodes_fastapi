@@ -155,6 +155,13 @@ async def scan_qr(token: str, request: Request):
     if not recipient:
         raise HTTPException(status_code=404, detail="Invalid QR code")
 
+    scan_event = DBScanEvents(
+        recipient_id=recipient.id,
+        ip_address=request.client.host
+    )
+
+    db.add(scan_event)
+
     recipient.total_scans += 1
     recipient.last_scanned_at = datetime.now()
 
