@@ -52,7 +52,7 @@ async def upload_recipients(file: UploadFile = File(...)):
         )
 
         # Validate required columns
-        required_columns = ["name", "surname", "company_name"]
+        required_columns = ["name", "surname", "company_name", "destination_url"]
 
         missing_columns = [
             col for col in required_columns
@@ -103,6 +103,8 @@ async def upload_recipients(file: UploadFile = File(...)):
                     if pd.notna(row["company_name"]) else None,
                     qr_token=token,
                     qr_image_url=qr_public_url,
+                    destination_url=str(row["destination_url"]).strip() if pd.notna(
+                        row.get("destination_url")) else None,
                 )
 
                 db.add(recipient)
@@ -169,8 +171,11 @@ async def scan_qr(token: str, request: Request):
         recipient.first_scanned_at = recipient.last_scanned_at
 
     db.commit()
+
+    redirect_url = recipient.destination_url
+
     db.close()
 
     return RedirectResponse(
-        url="YOUR_GOOGLE_DRIVE_PDF_LINK"
+        url=redirect_url,
     )
