@@ -8,11 +8,12 @@ from db.engine import Base
 class DBRecipients(Base):
     __tablename__ = "recipients"
     id = Column(BigInteger, Identity(always=False), primary_key=True)
-    name = Column(String, nullable=False)
-    surname = Column(String)
-    company_name = Column(String)
+    first_name = Column(String)
+    last_name = Column(String)
+    job_title = Column(String, nullable=False)
+    company_name = Column(String, nullable=False)
     qr_token = Column(String, unique=True, nullable=False)
-    destination_url = Column(String)
+    destination_url = Column(String, nullable=False)
     qr_image_url = Column(String)
     created_at = Column(DateTime, default=datetime.now)
     first_scanned_at = Column(DateTime)

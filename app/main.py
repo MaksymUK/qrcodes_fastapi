@@ -28,7 +28,7 @@ app.mount(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Welcome to the QR code generator app"}
 
 ################### Excel → QR generation ############################
 
@@ -52,7 +52,7 @@ async def upload_recipients(file: UploadFile = File(...)):
         )
 
         # Validate required columns
-        required_columns = ["name", "surname", "company_name", "destination_url"]
+        required_columns = ["job title", "company name", "destination_url"]
 
         missing_columns = [
             col for col in required_columns
@@ -74,7 +74,10 @@ async def upload_recipients(file: UploadFile = File(...)):
             for _, row in df.iterrows():
 
                 # Skip empty rows
-                if pd.isna(row["name"]):
+                if (
+                        pd.isna(row["job title"])
+                        or pd.isna(row["company name"])
+                ):
                     continue
 
                 token = str(uuid.uuid4())
@@ -96,15 +99,21 @@ async def upload_recipients(file: UploadFile = File(...)):
                 qr.save(qr_file_path)
 
                 recipient = DBRecipients(
-                    name=str(row["name"]).strip(),
-                    surname=str(row["surname"]).strip()
-                    if pd.notna(row["surname"]) else None,
-                    company_name=str(row["company_name"]).strip()
-                    if pd.notna(row["company_name"]) else None,
+                    first_name=(
+                        str(row["first name"]).strip()
+                        if pd.notna(row.get("first name"))
+                        else None
+                    ),
+                    last_name=(
+                        str(row["last name"]).strip()
+                        if pd.notna(row.get("last name"))
+                        else None
+                    ),
+                    job_title=str(row["job title"]).strip(),
+                    company_name=str(row["company name"]).strip(),
+                    destination_url=str(row["destination_url"]).strip(),
                     qr_token=token,
                     qr_image_url=qr_public_url,
-                    destination_url=str(row["destination_url"]).strip() if pd.notna(
-                        row.get("destination_url")) else None,
                 )
 
                 db.add(recipient)
@@ -159,7 +168,7 @@ async def scan_qr(token: str, request: Request):
 
     scan_event = DBScanEvents(
         recipient_id=recipient.id,
-        ip_address=request.client.host
+        ip_address=request.client.host,
     )
 
     db.add(scan_event)
