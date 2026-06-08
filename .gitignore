@@ -26,3 +26,4 @@ recipients_with_qr.xlsx
 *.sqlite3
 *.iml
 .DS_Store
+geoip/*.mmdb

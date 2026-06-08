@@ -11,6 +11,7 @@ from datetime import datetime
 
 from db.engine import SessionLocal
 from db.models import DBRecipients, DBScanEvents
+from app.utils.geoip import get_geo_data
 
 BASE_URL = getenv("BASE_URL", "http://localhost:8000")
 QR_FOLDER = "qr_codes"
@@ -24,7 +25,6 @@ app.mount(
     StaticFiles(directory=QR_FOLDER),
     name="qr_codes"
 )
-
 
 @app.get("/")
 async def root():
@@ -166,9 +166,18 @@ async def scan_qr(token: str, request: Request):
     if not recipient:
         raise HTTPException(status_code=404, detail="Invalid QR code")
 
+    ip_address = request.headers.get(
+        "X-Forwarded-For",
+        request.client.host
+    ).split(",")[0]
+
+    geo_data = get_geo_data(ip_address)
+
     scan_event = DBScanEvents(
         recipient_id=recipient.id,
-        ip_address=request.client.host,
+        ip_address=ip_address,
+        country=geo_data["country"],
+        city=geo_data["city"]
     )
 
     db.add(scan_event)
