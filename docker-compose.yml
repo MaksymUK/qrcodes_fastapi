@@ -9,6 +9,7 @@ services:
       - postgres
     volumes:
       - ./app/qr_codes:/app/app/qr_codes
+      - ./geoip/GeoLite2-City.mmdb:/app/geoip/GeoLite2-City.mmdb:ro
     expose:
       - "8000"
 
