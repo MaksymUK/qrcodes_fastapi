@@ -1,30 +1,29 @@
 from os import getenv
 
-from fastapi_mail import (FastMail, MessageSchema, ConnectionConfig)
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from datetime import datetime
 
-conf = ConnectionConfig(
-    MAIL_USERNAME=getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD=getenv("MAIL_PASSWORD"),
-    MAIL_FROM=getenv("MAIL_FROM"),
-    MAIL_SERVER=getenv("MAIL_SERVER"),
-    MAIL_PORT=getenv("MAIL_PORT"),
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-)
 
 async def send_scan_notification(
         company_name: str,
         job_title: str
 ):
-    message = MessageSchema(
-        subject="QR code scan alert",
-        recipients=[getenv("ADMIN_EMAIL")],
-        body=f"""
-        {company_name} / {job_title} just scanned QR code
-        Scan time: {datetime.now()}
-        """,
-        subtype="plain",
+    message = Mail(
+        from_email=getenv("FROM_EMAIL"),
+        to_emails=getenv("ADMIN_EMAIL"),
+        subject="QR Code Scan Alert",
+        html_content=f"""
+            <h2>QR Code Scan Alert</h2>
+
+            <p><strong>Company:</strong> {company_name}</p>
+            <p><strong>Job Title:</strong> {job_title}</p>
+            <p><strong>Time scanned:</strong> {datetime.now()}</p>
+            """
     )
-    fm = FastMail(conf)
-    await fm.send(message)
+    sg = SendGridAPIClient(
+        getenv("SENDGRID_API_KEY")
+    )
+
+    sg.send(message)
+
