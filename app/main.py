@@ -4,11 +4,12 @@ import uuid
 import pandas as pd
 import qrcode
 from os import getenv
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from datetime import datetime
 
+from app.utils.email import send_scan_notification
 from db.engine import SessionLocal
 from db.models import DBRecipients, DBScanEvents
 from app.utils.geoip import get_geo_data
@@ -149,11 +150,8 @@ async def upload_recipients(file: UploadFile = File(...)):
 
 #################### QR scan → Tracking #####################
 
-from fastapi import Request
-from fastapi.responses import RedirectResponse
-
 @app.get("/scan/{token}")
-async def scan_qr(token: str, request: Request):
+async def scan_qr(token: str, request: Request, background_tasks: BackgroundTasks):
 
     db = SessionLocal()
 
@@ -191,6 +189,12 @@ async def scan_qr(token: str, request: Request):
     db.commit()
 
     redirect_url = recipient.destination_url
+
+    background_tasks.add_task(
+        send_scan_notification,
+        company_name=recipient.company_name,
+        job_title=recipient.job_title,
+    )
 
     db.close()
 
